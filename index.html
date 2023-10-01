@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Maze Solver</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="script.js"></script>
+  </head>
+  <body>
+    <div class="info_text">
+      <h1>Maze Solver</h1>
+      <p>Select a search algorithm from the dropdown to solve a maze.</p>
+    </div>
+    <p>Select Search Algorithm:</p>
+    <p>
+      <input id="reload" type="button" value="Reload" onClick="refresh(this)" />
+    </p>
+    <select id="left_dropdown" onchange="generateMaze(this.value)">
+      <option value="default"></option>
+      <option value="DFS">Depth First Search</option>
+      <option value="BFS">Breadth First Search</option>
+      <option value="DKS">Dijkstra</option>
+    </select>
+    <canvas id="canvas" height="500" width="500"></canvas>
+  </body>
+</html>

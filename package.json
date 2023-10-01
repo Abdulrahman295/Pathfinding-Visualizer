@@ -1,0 +1,14 @@
+{
+  "name": "pathfinding-visualizer",
+  "version": "1.0.0",
+  "description": "a visualizer used to find the shortest path between two nodes",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "author": "Abdulrahman Ibrahim",
+  "license": "ISC",
+  "devDependencies": {
+    "parcel": "^2.9.3"
+  }
+}
