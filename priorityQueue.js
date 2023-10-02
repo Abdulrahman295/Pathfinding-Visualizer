@@ -1,15 +1,15 @@
-import { Edge } from "./edge";
+import Cell from "./cell";
 
 export default class PriorityQueue {
   constructor() {
     this.items = [];
   }
 
-  enqueue(edge) {
+  enqueue(cell) {
     let contains = false;
     for (let i = 0; i < this.items.length; i++) {
-      if (this.items[i].weight > edge.weight) {
-        this.items.splice(i, 0, edge);
+      if (this.items[i].F > cell.F) {
+        this.items.splice(i, 0, cell);
         contains = true;
         break;
       }

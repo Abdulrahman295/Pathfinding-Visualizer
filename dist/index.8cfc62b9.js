@@ -575,26 +575,29 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"6rimH":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-var _edge = require("./edge");
-var _edgeDefault = parcelHelpers.interopDefault(_edge);
+var _cell = require("./cell");
+var _cellDefault = parcelHelpers.interopDefault(_cell);
 var _priorityQueue = require("./priorityQueue");
 var _priorityQueueDefault = parcelHelpers.interopDefault(_priorityQueue);
 "use strict";
 const OO = 1e6;
-const generateWeight = function(node1, node2) {
+const getHeuristic = function(node1, node2) {
     return Math.abs(node1[0] - node2[0]) + Math.abs(node1[1] - node2[1]);
 };
 
-},{"./edge":"07GO2","./priorityQueue":"bnb7E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"07GO2":[function(require,module,exports) {
+},{"./cell":"1WVSC","./priorityQueue":"bnb7E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WVSC":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-class Edge {
-    constructor(to, weight){
-        this.to = to;
-        this.weight = weight;
+class Cell {
+    constructor(){
+        this.parentRow = 0;
+        this.parentColumn = 0;
+        this.F = 0;
+        this.G = 0;
+        this.H = 0;
     }
 }
-exports.default = Edge;
+exports.default = Cell;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
@@ -629,15 +632,16 @@ exports.export = function(dest, destName, get) {
 },{}],"bnb7E":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-var _edge = require("./edge");
+var _cell = require("./cell");
+var _cellDefault = parcelHelpers.interopDefault(_cell);
 class PriorityQueue {
     constructor(){
         this.items = [];
     }
-    enqueue(edge) {
+    enqueue(cell) {
         let contains = false;
-        for(let i = 0; i < this.items.length; i++)if (this.items[i].weight > edge.weight) {
-            this.items.splice(i, 0, edge);
+        for(let i = 0; i < this.items.length; i++)if (this.items[i].F > cell.F) {
+            this.items.splice(i, 0, cell);
             contains = true;
             break;
         }
@@ -653,6 +657,6 @@ class PriorityQueue {
 }
 exports.default = PriorityQueue;
 
-},{"./edge":"07GO2","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gAoaA","6rimH"], "6rimH", "parcelRequirec67b")
+},{"./cell":"1WVSC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gAoaA","6rimH"], "6rimH", "parcelRequirec67b")
 
 //# sourceMappingURL=index.8cfc62b9.js.map
