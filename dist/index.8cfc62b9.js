@@ -579,22 +579,195 @@ var _cell = require("./cell");
 var _cellDefault = parcelHelpers.interopDefault(_cell);
 var _priorityQueue = require("./priorityQueue");
 var _priorityQueueDefault = parcelHelpers.interopDefault(_priorityQueue);
+var _config = require("./config");
 "use strict";
-const OO = 1e6;
-const getHeuristic = function(node1, node2) {
-    return Math.abs(node1[0] - node2[0]) + Math.abs(node1[1] - node2[1]);
+const getHeuristic = function(cellPos, goalPos) {
+    return Math.abs(cellPos[0] - goalPos[0]) + Math.abs(cellPos[1] - goalPos[1]);
 };
+const isValid = function(row, column) {
+    if (row < 0 || row >= (0, _config.ROWS)) return false;
+    if (column < 0 || column >= (0, _config.COLUMNS)) return false;
+    return true;
+};
+const getNeighbors = function(maze, cell) {
+    const neighbors = [];
+    const currentRow = cell.position[0];
+    const currentColumn = cell.position[1];
+    for(let i = 0; i < 4; i++){
+        let newRow = currentRow + (0, _config.DR)[i];
+        let newColumn = currentColumn + (0, _config.DC)[i];
+        if (isValid(newRow, newColumn) && maze[newRow][newColumn] !== 0) neighbors.push(new (0, _cellDefault.default)(cell, [
+            newRow,
+            newColumn
+        ]));
+    }
+    return neighbors;
+};
+const tracePath = function(cell) {
+    const path = [];
+    let currentCell = cell;
+    while(currentCell !== null){
+        path.push(currentCell.position);
+        currentCell = currentCell.parent;
+    }
+    return path.reverse();
+};
+const shortestPath = function(maze, startPos, goalPos) {
+    const startCell = new (0, _cellDefault.default)();
+    const endCell = new (0, _cellDefault.default)();
+    startCell.position = startPos;
+    endCell.position = goalPos;
+    const pq = new (0, _priorityQueueDefault.default)();
+    const visited = Array((0, _config.ROWS)).fill(0).map(()=>new Array((0, _config.COLUMNS)).fill(0));
+    pq.enqueue(startCell);
+    while(!pq.isEmpty()){
+        const currentCell = pq.dequeue();
+        visited[currentCell.position[0]][currentCell.position[1]] = 1;
+        if (currentCell.position[0] === goalPos[0] && currentCell.position[1] === goalPos[1]) return tracePath(currentCell);
+        const neighbors = getNeighbors(maze, currentCell);
+        neighbors.forEach((neighbor)=>{
+            if (visited[neighbor.position[0]][neighbor.position[1]] === 1) return;
+            neighbor.G = currentCell.G + 1;
+            neighbor.H = getHeuristic(neighbor.position, goalPos);
+            neighbor.F = neighbor.G + neighbor.H;
+            pq.enqueue(neighbor);
+        });
+    }
+    return [];
+};
+const maze = [
+    [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1
+    ],
+    [
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1
+    ],
+    [
+        1,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        1,
+        1
+    ],
+    [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+    ],
+    [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    [
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1
+    ],
+    [
+        1,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1
+    ],
+    [
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+    ],
+    [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+    ],
+    [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ]
+];
 
-},{"./cell":"1WVSC","./priorityQueue":"bnb7E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WVSC":[function(require,module,exports) {
+},{"./cell":"1WVSC","./priorityQueue":"bnb7E","./config":"bSr8D","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WVSC":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 class Cell {
-    constructor(){
-        this.parentRow = 0;
-        this.parentColumn = 0;
-        this.F = 0;
-        this.G = 0;
-        this.H = 0;
+    constructor(parent = null, position = null, F = 0, G = 0, H = 0){
+        this.parent = parent;
+        this.position = position;
+        this.F = F;
+        this.G = G;
+        this.H = H;
     }
 }
 exports.default = Cell;
@@ -645,7 +818,7 @@ class PriorityQueue {
             contains = true;
             break;
         }
-        if (!contains) this.items.push(edge);
+        if (!contains) this.items.push(cell);
     }
     dequeue() {
         if (this.isEmpty()) return;
@@ -657,6 +830,30 @@ class PriorityQueue {
 }
 exports.default = PriorityQueue;
 
-},{"./cell":"1WVSC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gAoaA","6rimH"], "6rimH", "parcelRequirec67b")
+},{"./cell":"1WVSC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bSr8D":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ROWS", ()=>ROWS);
+parcelHelpers.export(exports, "COLUMNS", ()=>COLUMNS);
+parcelHelpers.export(exports, "DR", ()=>DR);
+parcelHelpers.export(exports, "DC", ()=>DC);
+parcelHelpers.export(exports, "OO", ()=>OO);
+const ROWS = 10;
+const COLUMNS = 10;
+const DR = [
+    -1,
+    0,
+    1,
+    0
+];
+const DC = [
+    0,
+    1,
+    0,
+    -1
+];
+const OO = 1e6;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gAoaA","6rimH"], "6rimH", "parcelRequirec67b")
 
 //# sourceMappingURL=index.8cfc62b9.js.map

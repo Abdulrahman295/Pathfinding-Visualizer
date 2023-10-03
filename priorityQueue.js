@@ -15,7 +15,7 @@ export default class PriorityQueue {
       }
     }
 
-    if (!contains) this.items.push(edge);
+    if (!contains) this.items.push(cell);
   }
 
   dequeue() {
