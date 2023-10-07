@@ -580,6 +580,8 @@ var _cellDefault = parcelHelpers.interopDefault(_cell);
 var _priorityQueue = require("./priorityQueue");
 var _priorityQueueDefault = parcelHelpers.interopDefault(_priorityQueue);
 var _config = require("./config");
+var _maze = require("./maze");
+var _mazeDefault = parcelHelpers.interopDefault(_maze);
 "use strict";
 const getHeuristic = function(cellPos, goalPos) {
     return Math.abs(cellPos[0] - goalPos[0]) + Math.abs(cellPos[1] - goalPos[1]);
@@ -635,139 +637,51 @@ const shortestPath = function(maze, startPos, goalPos) {
     }
     return [];
 };
-const maze = [
-    [
-        1,
-        1,
-        1,
-        1,
-        1,
-        0,
-        1,
-        1,
-        1,
-        1
-    ],
-    [
-        1,
-        0,
-        0,
-        1,
-        1,
-        1,
-        0,
-        1,
-        0,
-        1
-    ],
-    [
-        1,
-        0,
-        1,
-        1,
-        0,
-        1,
-        0,
-        1,
-        1,
-        1
-    ],
-    [
-        1,
-        1,
-        1,
-        0,
-        1,
-        1,
-        1,
-        1,
-        0,
-        1
-    ],
-    [
-        1,
-        1,
-        1,
-        0,
-        0,
-        1,
-        1,
-        1,
-        1,
-        1
-    ],
-    [
-        1,
-        0,
-        0,
-        1,
-        1,
-        1,
-        0,
-        0,
-        0,
-        1
-    ],
-    [
-        1,
-        0,
-        1,
-        0,
-        0,
-        1,
-        1,
-        1,
-        0,
-        1
-    ],
-    [
-        1,
-        1,
-        1,
-        1,
-        0,
-        1,
-        0,
-        1,
-        0,
-        1
-    ],
-    [
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        1
-    ],
-    [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
-    ]
-];
+// const maze = [
+//   [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+//   [1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
+//   [1, 0, 1, 1, 0, 1, 0, 1, 1, 1],
+//   [1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+//   [1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+//   [1, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+//   [1, 0, 1, 0, 0, 1, 1, 1, 0, 1],
+//   [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+//   [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+//   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+// ];
+const maze = new (0, _mazeDefault.default)((0, _config.ROWS));
+console.log(maze.generateRandomMaze());
 
-},{"./cell":"1WVSC","./priorityQueue":"bnb7E","./config":"bSr8D","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WVSC":[function(require,module,exports) {
+},{"./cell":"1WVSC","./priorityQueue":"bnb7E","./config":"bSr8D","./maze":"3ecDf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WVSC":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 class Cell {
     constructor(parent = null, position = null, F = 0, G = 0, H = 0){
         this.parent = parent;
         this.position = position;
+        this.neighbours = {};
+        this.top = this.bottom = this.right = this.left = false;
         this.F = F;
         this.G = G;
         this.H = H;
+    }
+    tunnelTo(cell) {
+        if (this.neighbours.north == cell) {
+            this.top = true;
+            this.neighbours.north.bottom = true;
+        }
+        if (this.neighbours.south == cell) {
+            this.bottom = true;
+            this.neighbours.south.top = true;
+        }
+        if (this.neighbours.west == cell) {
+            this.left = true;
+            this.neighbours.west.right = true;
+        }
+        if (this.neighbours.east == cell) {
+            this.right = true;
+            this.neighbours.east.left = true;
+        }
     }
 }
 exports.default = Cell;
@@ -853,6 +767,128 @@ const DC = [
     -1
 ];
 const OO = 1e6;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3ecDf":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _unionFind = require("./UnionFind");
+var _unionFindDefault = parcelHelpers.interopDefault(_unionFind);
+var _cell = require("./cell");
+var _cellDefault = parcelHelpers.interopDefault(_cell);
+class Maze {
+    constructor(size){
+        this.size = size;
+        this.grid = [];
+        this.startCell = {};
+        this.endCell = {};
+        this.#initializeGrid();
+    }
+    #initializeGrid() {
+        for(let row = 0; row < this.size; row++){
+            this.grid.push([]);
+            for(let column = 0; column < this.size; column++)this.grid[this.grid.length - 1].push(new (0, _cellDefault.default)(null, [
+                row,
+                column
+            ]));
+        }
+        for(let row = 0; row < this.size; row++)for(let column = 0; column < this.size; column++)this.grid[row][column].neighbours = {
+            north: row === 0 ? null : this.grid[row - 1][column],
+            south: row === this.grid.length - 1 ? null : this.grid[row + 1][column],
+            east: column === this.grid.length - 1 ? null : this.grid[row][column + 1],
+            west: column === 0 ? null : this.grid[row][column - 1]
+        };
+    }
+    MST_Kruskal() {
+        // create a list of all walls.
+        let walls = [];
+        for(let row = 0; row < this.size; row++)for(let column = 0; column < this.size; column++){
+            let cell = this.grid[row][column];
+            if (cell.neighbours.north != null) walls.push([
+                cell,
+                cell.neighbours.north
+            ]);
+            if (cell.neighbours.east != null) walls.push([
+                cell,
+                cell.neighbours.east
+            ]);
+            if (cell.neighbours.south != null) walls.push([
+                cell,
+                cell.neighbours.south
+            ]);
+            if (cell.neighbours.west != null) walls.push([
+                cell,
+                cell.neighbours.west
+            ]);
+        }
+        // shuffle the walls
+        for(let i = walls.length - 1; i > 0; i--){
+            let n = Math.floor(Math.random() * i);
+            [walls[i], walls[n]] = [
+                walls[n],
+                walls[i]
+            ];
+        }
+        const uf = new (0, _unionFindDefault.default)(this.size);
+        for(let i = 0; i < walls.length; ++i){
+            let [cell1, cell2] = walls[i];
+            if (uf.unionSets(cell1.position[0], cell1.position[1], cell2.position[0], cell2.position[1])) cell1.tunnelTo(cell2);
+        }
+    }
+    generateRandomMaze() {}
+}
+exports.default = Maze;
+
+},{"./UnionFind":"g8X71","./cell":"1WVSC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g8X71":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+class UnionFind {
+    constructor(n){
+        this.parent = new Array(n);
+        this.rank = new Array(n);
+        for(let i = 0; i < n; i++){
+            this.parent[i] = new Array(n);
+            this.rank[i] = new Array(n);
+        }
+        for(let row = 0; row < n; row++)for(let column = 0; column < n; column++){
+            this.parent[row][column] = [
+                row,
+                column
+            ];
+            this.rank[row][column] = 1;
+        }
+    }
+    link(r1, c1, r2, c2) {
+        if (this.rank[r1][c1] > this.rank[r2][c2]) {
+            [r1, r2] = [
+                r2,
+                r1
+            ];
+            [c1, c2] = [
+                c2,
+                c2
+            ];
+        }
+        this.parent[r1][c1] = [
+            r2,
+            c2
+        ];
+        if (this.rank[r1][c1] === this.rank[r2][c2]) this.rank[r2][c2]++;
+    }
+    findSet(row, column) {
+        if (this.parent[row][column][0] === row && this.parent[row][column][1] === column) return [
+            row,
+            column
+        ];
+        return this.parent[row][column] = this.findSet(this.parent[row][column][0], this.parent[row][column][1]);
+    }
+    unionSets(r1, c1, r2, c2) {
+        [r1, c1] = this.findSet(r1, c1);
+        [r2, c2] = this.findSet(r2, c2);
+        if (r1 !== r2 || c1 !== c2) this.link(r1, c1, r2, c2);
+        return r1 !== r2 || c1 !== c2;
+    }
+}
+exports.default = UnionFind;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gAoaA","6rimH"], "6rimH", "parcelRequirec67b")
 

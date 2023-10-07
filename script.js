@@ -2,6 +2,7 @@
 import Cell from "./cell";
 import PriorityQueue from "./priorityQueue";
 import { ROWS, COLUMNS, DR, DC } from "./config";
+import Maze from "./maze";
 
 const getHeuristic = function (cellPos, goalPos) {
   return Math.abs(cellPos[0] - goalPos[0]) + Math.abs(cellPos[1] - goalPos[1]);
@@ -77,15 +78,19 @@ const shortestPath = function (maze, startPos, goalPos) {
   return [];
 };
 
-const maze = [
-  [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-  [1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
-  [1, 0, 1, 1, 0, 1, 0, 1, 1, 1],
-  [1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-  [1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
-  [1, 0, 0, 1, 1, 1, 0, 0, 0, 1],
-  [1, 0, 1, 0, 0, 1, 1, 1, 0, 1],
-  [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-];
+// const maze = [
+//   [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+//   [1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
+//   [1, 0, 1, 1, 0, 1, 0, 1, 1, 1],
+//   [1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+//   [1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+//   [1, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+//   [1, 0, 1, 0, 0, 1, 1, 1, 0, 1],
+//   [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+//   [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+//   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+// ];
+
+const maze = new Maze(ROWS);
+
+console.log(maze.generateRandomMaze());
