@@ -10,18 +10,14 @@
   <body>
     <div class="info_text">
       <h1>Maze Solver</h1>
-      <p>Select a search algorithm from the dropdown to solve a maze.</p>
+      <p>A path finding visualizer using A* algorithm.</p>
     </div>
-    <p>Select Search Algorithm:</p>
+    <p>Select Option:</p>
     <p>
-      <input id="reload" type="button" value="Reload" onClick="refresh(this)" />
+      <input id="reload" type="button" value="Reload" />
+      <input id="solve" type="button" value="Solve" />
+      <input id="clear" type="button" value="clear" />
     </p>
-    <select id="left_dropdown" onchange="generateMaze(this.value)">
-      <option value="default"></option>
-      <option value="DFS">Depth First Search</option>
-      <option value="BFS">Breadth First Search</option>
-      <option value="DKS">Dijkstra</option>
-    </select>
     <canvas id="canvas" height="500" width="500"></canvas>
   </body>
 </html>

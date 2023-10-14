@@ -582,28 +582,21 @@ var _priorityQueueDefault = parcelHelpers.interopDefault(_priorityQueue);
 var _config = require("./config");
 var _maze = require("./maze");
 var _mazeDefault = parcelHelpers.interopDefault(_maze);
+var _drawer = require("./drawer");
+var _drawerDefault = parcelHelpers.interopDefault(_drawer);
 "use strict";
+const reloadBtn = document.getElementById("reload");
+const solveBtn = document.getElementById("solve");
+const clearBtn = document.getElementById("clear");
+const drawer = new (0, _drawerDefault.default)();
+let maze;
 const getHeuristic = function(cellPos, goalPos) {
     return Math.abs(cellPos[0] - goalPos[0]) + Math.abs(cellPos[1] - goalPos[1]);
 };
-const isValid = function(row, column) {
-    if (row < 0 || row >= (0, _config.ROWS)) return false;
-    if (column < 0 || column >= (0, _config.COLUMNS)) return false;
-    return true;
-};
-const getNeighbors = function(maze, cell) {
-    const neighbors = [];
-    const currentRow = cell.position[0];
-    const currentColumn = cell.position[1];
-    for(let i = 0; i < 4; i++){
-        let newRow = currentRow + (0, _config.DR)[i];
-        let newColumn = currentColumn + (0, _config.DC)[i];
-        if (isValid(newRow, newColumn) && maze[newRow][newColumn] !== 0) neighbors.push(new (0, _cellDefault.default)(cell, [
-            newRow,
-            newColumn
-        ]));
-    }
-    return neighbors;
+const setWeight = function(currentCell, neighbor, endCell) {
+    neighbor.G = currentCell.G + 1;
+    neighbor.H = getHeuristic(neighbor.position, endCell.position);
+    neighbor.F = neighbor.G + neighbor.H;
 };
 const tracePath = function(cell) {
     const path = [];
@@ -614,45 +607,60 @@ const tracePath = function(cell) {
     }
     return path.reverse();
 };
-const shortestPath = function(maze, startPos, goalPos) {
-    const startCell = new (0, _cellDefault.default)();
-    const endCell = new (0, _cellDefault.default)();
-    startCell.position = startPos;
-    endCell.position = goalPos;
+const addCellNeighbors = function(visited, pq, currentCell, endCell) {
+    if (currentCell.top && visited[currentCell.neighbours.north.position[0]][currentCell.neighbours.north.position[1]] !== 1) {
+        setWeight(currentCell, currentCell.neighbours.north, endCell);
+        currentCell.neighbours.north.parent = currentCell;
+        pq.enqueue(currentCell.neighbours.north);
+    }
+    if (currentCell.bottom && visited[currentCell.neighbours.south.position[0]][currentCell.neighbours.south.position[1]] !== 1) {
+        setWeight(currentCell, currentCell.neighbours.south, endCell);
+        currentCell.neighbours.south.parent = currentCell;
+        pq.enqueue(currentCell.neighbours.south);
+    }
+    if (currentCell.right && visited[currentCell.neighbours.east.position[0]][currentCell.neighbours.east.position[1]] !== 1) {
+        setWeight(currentCell, currentCell.neighbours.east, endCell);
+        currentCell.neighbours.east.parent = currentCell;
+        pq.enqueue(currentCell.neighbours.east);
+    }
+    if (currentCell.left && visited[currentCell.neighbours.west.position[0]][currentCell.neighbours.west.position[1]] !== 1) {
+        setWeight(currentCell, currentCell.neighbours.west, endCell);
+        currentCell.neighbours.west.parent = currentCell;
+        pq.enqueue(currentCell.neighbours.west);
+    }
+};
+const shortestPath = function(maze) {
     const pq = new (0, _priorityQueueDefault.default)();
     const visited = Array((0, _config.ROWS)).fill(0).map(()=>new Array((0, _config.COLUMNS)).fill(0));
-    pq.enqueue(startCell);
+    pq.enqueue(maze.startCell);
     while(!pq.isEmpty()){
         const currentCell = pq.dequeue();
         visited[currentCell.position[0]][currentCell.position[1]] = 1;
-        if (currentCell.position[0] === goalPos[0] && currentCell.position[1] === goalPos[1]) return tracePath(currentCell);
-        const neighbors = getNeighbors(maze, currentCell);
-        neighbors.forEach((neighbor)=>{
-            if (visited[neighbor.position[0]][neighbor.position[1]] === 1) return;
-            neighbor.G = currentCell.G + 1;
-            neighbor.H = getHeuristic(neighbor.position, goalPos);
-            neighbor.F = neighbor.G + neighbor.H;
-            pq.enqueue(neighbor);
-        });
+        if (currentCell.position[0] === maze.endCell.position[0] && currentCell.position[1] === maze.endCell.position[1]) {
+            maze.solved = true;
+            return tracePath(currentCell);
+        }
+        addCellNeighbors(visited, pq, currentCell, maze.endCell);
     }
     return [];
 };
-// const maze = [
-//   [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-//   [1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
-//   [1, 0, 1, 1, 0, 1, 0, 1, 1, 1],
-//   [1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-//   [1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
-//   [1, 0, 0, 1, 1, 1, 0, 0, 0, 1],
-//   [1, 0, 1, 0, 0, 1, 1, 1, 0, 1],
-//   [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-//   [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-//   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-// ];
-const maze = new (0, _mazeDefault.default)((0, _config.ROWS));
-console.log(maze.generateRandomMaze());
+reloadBtn.addEventListener("click", function() {
+    maze = new (0, _mazeDefault.default)((0, _config.SIZE));
+    maze.generate();
+    drawer.drawMaze(maze);
+});
+solveBtn.addEventListener("click", function() {
+    if (!maze || maze.solved) return;
+    const path = shortestPath(maze);
+    if (path.length === 0) return;
+    drawer.drawPath(path);
+});
+clearBtn.addEventListener("click", function() {
+    maze = null;
+    drawer.clear();
+});
 
-},{"./cell":"1WVSC","./priorityQueue":"bnb7E","./config":"bSr8D","./maze":"3ecDf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WVSC":[function(require,module,exports) {
+},{"./cell":"1WVSC","./priorityQueue":"bnb7E","./config":"bSr8D","./maze":"3ecDf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./drawer":"fq381"}],"1WVSC":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 class Cell {
@@ -749,11 +757,13 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ROWS", ()=>ROWS);
 parcelHelpers.export(exports, "COLUMNS", ()=>COLUMNS);
+parcelHelpers.export(exports, "SIZE", ()=>SIZE);
 parcelHelpers.export(exports, "DR", ()=>DR);
 parcelHelpers.export(exports, "DC", ()=>DC);
 parcelHelpers.export(exports, "OO", ()=>OO);
 const ROWS = 10;
 const COLUMNS = 10;
+const SIZE = 10;
 const DR = [
     -1,
     0,
@@ -781,6 +791,7 @@ class Maze {
         this.grid = [];
         this.startCell = {};
         this.endCell = {};
+        this.solved = false;
         this.#initializeGrid();
     }
     #initializeGrid() {
@@ -798,7 +809,19 @@ class Maze {
             west: column === 0 ? null : this.grid[row][column - 1]
         };
     }
-    MST_Kruskal() {
+    shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while(currentIndex > 0){
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex],
+                array[currentIndex]
+            ];
+        }
+        return array;
+    }
+    generate() {
         // create a list of all walls.
         let walls = [];
         for(let row = 0; row < this.size; row++)for(let column = 0; column < this.size; column++){
@@ -820,21 +843,13 @@ class Maze {
                 cell.neighbours.west
             ]);
         }
-        // shuffle the walls
-        for(let i = walls.length - 1; i > 0; i--){
-            let n = Math.floor(Math.random() * i);
-            [walls[i], walls[n]] = [
-                walls[n],
-                walls[i]
-            ];
-        }
+        this.shuffle(walls);
         const uf = new (0, _unionFindDefault.default)(this.size);
         for(let i = 0; i < walls.length; ++i){
             let [cell1, cell2] = walls[i];
             if (uf.unionSets(cell1.position[0], cell1.position[1], cell2.position[0], cell2.position[1])) cell1.tunnelTo(cell2);
         }
     }
-    generateRandomMaze() {}
 }
 exports.default = Maze;
 
@@ -884,11 +899,99 @@ class UnionFind {
     unionSets(r1, c1, r2, c2) {
         [r1, c1] = this.findSet(r1, c1);
         [r2, c2] = this.findSet(r2, c2);
-        if (r1 !== r2 || c1 !== c2) this.link(r1, c1, r2, c2);
+        if (r1 !== r2 || c1 !== c2) this.parent[r1][c1] = [
+            r2,
+            c2
+        ];
         return r1 !== r2 || c1 !== c2;
     }
 }
 exports.default = UnionFind;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fq381":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+class Drawer {
+    #canvas = document.getElementById("canvas");
+    #ctx = this.#canvas.getContext("2d");
+    constructor(){
+        this.#ctx.fillStyle = "skyblue";
+        this.#ctx.fillRect(0, 0, 500, 500);
+    }
+    drawMaze(maze) {
+        this.clear();
+        this.setLineStyle("black", 7);
+        for(let row = 0; row < maze.size; ++row)for(let column = 0; column < maze.size; ++column)this.drawWall(maze.grid[row][column]);
+        this.drawStartEndPoints(maze);
+    }
+    drawWall(cell) {
+        if (!cell.left) {
+            this.#ctx.moveTo(cell.position[1] * 50, cell.position[0] * 50);
+            this.#ctx.lineTo(cell.position[1] * 50, cell.position[0] * 50 + 50);
+        }
+        if (!cell.bottom) {
+            this.#ctx.moveTo(cell.position[1] * 50, cell.position[0] * 50 + 50);
+            this.#ctx.lineTo(cell.position[1] * 50 + 50, cell.position[0] * 50 + 50);
+        }
+        if (!cell.right) {
+            this.#ctx.moveTo(cell.position[1] * 50 + 50, cell.position[0] * 50 + 50);
+            this.#ctx.lineTo(cell.position[1] * 50 + 50, cell.position[0] * 50);
+        }
+        if (!cell.top) {
+            this.#ctx.moveTo(cell.position[1] * 50 + 50, cell.position[0] * 50);
+            this.#ctx.lineTo(cell.position[1] * 50, cell.position[0] * 50);
+        }
+        this.#ctx.stroke();
+    }
+    drawStartEndPoints(maze) {
+        // draw start point
+        let startColumn = Math.floor(Math.random() * maze.size);
+        this.#ctx.beginPath();
+        this.#ctx.arc(25 + startColumn * 50, 25, 15, 0, 2 * Math.PI);
+        this.#ctx.fillStyle = "green";
+        this.#ctx.fill();
+        // draw end point
+        let endColumn = Math.floor(Math.random() * maze.size);
+        this.#ctx.beginPath();
+        this.#ctx.arc(25 + endColumn * 50, 475, 15, 0, 2 * Math.PI);
+        this.#ctx.fillStyle = "red";
+        this.#ctx.fill();
+        // set start and end points for tha maze
+        maze.startCell = maze.grid[0][startColumn];
+        maze.endCell = maze.grid[9][endColumn];
+    }
+    async drawPath(points) {
+        // set path start point
+        let currentPoint = [
+            25 + points[0][1] * 50,
+            25 + points[0][0] * 50
+        ];
+        let newX, newY;
+        // begin path
+        this.#ctx.beginPath();
+        this.#ctx.moveTo(currentPoint[0], currentPoint[1]);
+        // draw path
+        for(let i = 1; i < points.length; i++){
+            newX = currentPoint[0] + (points[i][1] - points[i - 1][1]) * 50;
+            newY = currentPoint[1] + (points[i][0] - points[i - 1][0]) * 50;
+            this.#ctx.lineTo(newX, newY);
+            currentPoint[0] = newX;
+            currentPoint[1] = newY;
+        }
+        this.setLineStyle("yellow", 3);
+        this.#ctx.stroke();
+    }
+    clear() {
+        this.#ctx.reset();
+        this.#ctx.fillStyle = "skyblue";
+        this.#ctx.fillRect(0, 0, 500, 500);
+    }
+    setLineStyle(color, width) {
+        this.#ctx.strokeStyle = color;
+        this.#ctx.lineWidth = width;
+    }
+}
+exports.default = Drawer;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gAoaA","6rimH"], "6rimH", "parcelRequirec67b")
 

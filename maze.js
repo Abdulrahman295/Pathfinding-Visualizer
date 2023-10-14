@@ -6,6 +6,7 @@ export default class Maze {
     this.grid = [];
     this.startCell = {};
     this.endCell = {};
+    this.solved = false;
     this.#initializeGrid();
   }
 
@@ -31,7 +32,24 @@ export default class Maze {
     }
   }
 
-  MST_Kruskal() {
+  shuffle(array) {
+    let currentIndex = array.length,
+      randomIndex;
+
+    while (currentIndex > 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex],
+      ];
+    }
+
+    return array;
+  }
+
+  generate() {
     // create a list of all walls.
     let walls = [];
     for (let row = 0; row < this.size; row++) {
@@ -55,11 +73,7 @@ export default class Maze {
       }
     }
 
-    // shuffle the walls
-    for (let i = walls.length - 1; i > 0; i--) {
-      let n = Math.floor(Math.random() * i);
-      [walls[i], walls[n]] = [walls[n], walls[i]];
-    }
+    this.shuffle(walls);
 
     const uf = new UnionFind(this.size);
     for (let i = 0; i < walls.length; ++i) {
@@ -77,6 +91,4 @@ export default class Maze {
       }
     }
   }
-
-  generateRandomMaze() {}
 }

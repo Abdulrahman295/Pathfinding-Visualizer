@@ -44,7 +44,7 @@ export default class UnionFind {
     [r2, c2] = this.findSet(r2, c2);
 
     if (r1 !== r2 || c1 !== c2) {
-      this.link(r1, c1, r2, c2);
+      this.parent[r1][c1] = [r2, c2];
     }
 
     return r1 !== r2 || c1 !== c2;
